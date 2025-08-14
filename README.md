@@ -51,6 +51,6 @@ The system uses:
 - **Center calculation** for drift detection
 - **Pygame** for audio alerts
 
-## 📝 License
+## 📝 License - MIT License
 
 Open source project for educational and research purposes. 
