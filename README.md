@@ -1,5 +1,5 @@
 
-## 🧰 Software Dependencies
+##  Software Dependencies
 
 ```bash
 pip install opencv-python
@@ -9,7 +9,7 @@ pip install imutils
 ```
 
 
-## 🚀 Usage
+## Usage
 
 ### Demo Mode (Testing with pre-recorded videos)
 ```bash
@@ -26,7 +26,7 @@ python main.py --mode live
 python main.py --mode live --threshold 50 --show-display
 ```
 
-## 🔧 Configuration
+##  Config
 
 Key parameters can be adjusted in the respective modules:
 
@@ -38,7 +38,7 @@ Key parameters can be adjusted in the respective modules:
 
 I have tested with a Raspberry Pi 4 with 4GB of RAM, and OpenLKAS runs smoothly. However, OpenLKAS can run on any device with the software dependency prerequisites - as long as said device has above 2GB of RAM, and a processor around the power of an ARM Cortex A72. However, results may vary.
 
-## 🧪 Testing
+## Testing
 
 1. Start with demo mode using sample videos in `demo_videos/`
 2. Validate lane detection accuracy
@@ -47,7 +47,7 @@ I have tested with a Raspberry Pi 4 with 4GB of RAM, and OpenLKAS runs smoothly.
 5. Please be safe while testing - do NOT rely on OpenLKAS as a complete safety system. Only test on empty roads and be cautious while driving.
 
 
-## 🔍 Technical Details
+## Technical Details
 
 The system uses:
 - **Canny Edge Detection** for lane line identification
@@ -56,6 +56,6 @@ The system uses:
 - **Center calculation** for drift detection
 - **Pygame** for audio alerts
 
-## 📝 License - MIT License
+## License - MIT License
 
 Open source project for educational and research purposes. 
