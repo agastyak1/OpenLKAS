@@ -34,12 +34,17 @@ Key parameters can be adjusted in the respective modules:
 - **Camera resolution**: Modify in `camera_module.py`
 - **Audio alert volume**: Configure in `audio_alert.py`
 
+## Hardware Requirements
+
+I have tested with a Raspberry Pi 4 with 4GB of RAM, and OpenLKAS runs smoothly. However, OpenLKAS can run on any device with the software dependency prerequisites - as long as said device has above 2GB of RAM, and a processor around the power of an ARM Cortex A72. However, results may vary.
+
 ## 🧪 Testing
 
 1. Start with demo mode using sample videos in `demo_videos/`
 2. Validate lane detection accuracy
 3. Switch to live mode for real-time testing
 4. Verify audio alerts trigger correctly
+5. Please be safe while testing - do NOT rely on OpenLKAS as a complete safety system. Only test on empty roads and be cautious while driving.
 
 
 ## 🔍 Technical Details
