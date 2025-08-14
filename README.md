@@ -48,7 +48,7 @@ My testing setup:
 2. Validate lane detection accuracy
 3. Switch to live mode for real-time testing
 4. Verify audio alerts trigger correctly
-5. Please be safe while testing - do NOT rely on OpenLKAS as a complete safety system. Only test on empty roads and be cautious while driving.
+5. Please act accordingly while testing - do NOT rely on OpenLKAS as a complete safety system. Only test on empty roads and be cautious while driving.
 
 
 ## Technical Details
