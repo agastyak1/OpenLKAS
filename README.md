@@ -36,7 +36,11 @@ Key parameters can be adjusted in the respective modules:
 
 ## Hardware Requirements
 
-I have tested with a Raspberry Pi 4 with 4GB of RAM, and OpenLKAS runs smoothly. However, OpenLKAS can run on any device with the software dependency prerequisites - as long as said device has above 2GB of RAM, and a processor around the power of an ARM Cortex A72. However, results may vary.
+I have tested with a Raspberry Pi 4 with 4GB of RAM, and OpenLKAS runs smoothly. However, OpenLKAS can run on any device with the software dependency prerequisites - as long as said device has above 2GB of RAM, and a processor around the power of an ARM Cortex A72. However, results may vary. Also, a camera must be connected in order for live mode to run, preferably of a resolution of 720p and above.
+My testing setup:
+- Raspberry Pi 4B with 4GB RAM, ARM Cortex A72 - along with an active cooler
+- Logitech 720p Webcam
+- Dashboard mounted setup with the webcam directly in the middle of the car's dashboard, pointing towards the road
 
 ## Testing
 
