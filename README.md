@@ -37,10 +37,18 @@ Key parameters can be adjusted in the respective modules:
 ## Hardware Requirements
 
 I have tested with a Raspberry Pi 4 with 4GB of RAM, and OpenLKAS runs smoothly. However, OpenLKAS can run on any device with the software dependency prerequisites - as long as said device has above 2GB of RAM, and a processor around the power of an ARM Cortex A72. However, results may vary. Also, a camera must be connected in order for live mode to run, preferably of a resolution of 720p and above.
-My testing setup:
+Furthermore, I have also tested with a MacBook (3.4 gHz i7) running macOS Ventura utilizing the "iPhone as Camera" feature - where I keep the laptop running OpenLKAS, and the phone is mounted to the dash pointing the rear camera towards the road. The higher the resolution camera and higher CPU processing power you have, the better.
+I may test with an Android device as well.
+
+
+## My RPI testing setup:
 - Raspberry Pi 4B with 4GB RAM, ARM Cortex A72 - along with an active cooler
 - Logitech 720p Webcam
 - Dashboard mounted setup with the webcam directly in the middle of the car's dashboard, pointing towards the road
+## My MacBook testing setup:
+- 2015 Macbook Pro with an i7-5557u and 16GB RAM
+- Dashboard mounted iPhone via macOS Ventura and later's iPhone as Camera feature pointing towards the road
+
 
 ## Testing
 
