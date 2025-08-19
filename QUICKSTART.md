@@ -111,7 +111,7 @@ python main.py --help
 3. Mount camera securely in your vehicle
 4. Test in real driving conditions
 
-## 🆘 Need Help?
+## Need Help?
 
 - Check the main README.md for detailed documentation
 - Review the code comments for technical details
