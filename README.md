@@ -1,4 +1,4 @@
-## Changelogs - IN PROGRESS 
+## OpenLKAS is currently IN PROGRESS and in bugfixing.
 - Ver 0.0: Initial upload of OpenLKAS
 - 
 
