@@ -1,6 +1,6 @@
 ## OpenLKAS is currently IN PROGRESS and in bugfixing.
 - Ver 0.0: Initial upload of OpenLKAS
-- 
+- Future Ver 0.1: Revamp of code with optimizations towards RPI4/5, & Nvidia Jetson Nano; Shifting towards YOLO Models in this release rather than OpenCV
 
 ##  Software Dependencies
 
