@@ -55,7 +55,7 @@ class LaneDetector:
         
         # State tracking
         self.last_lane_center = None
-        self.smoothing_factor = 0.7  # For temporal smoothing
+        self.smoothing_factor = 0.3  # For temporal smoothing (lower = more responsive to current frame)
         
         logger.info(f"Lane detector initialized with departure threshold: {departure_threshold}px")
     
@@ -137,8 +137,11 @@ class LaneDetector:
         """
         if self.roi_vertices is None:
             self.roi_vertices = get_default_roi_vertices(frame_shape[:2])
+
+        # extract the actual 2D array if we are dealing with the nested array format
+        vertices_to_use = self.roi_vertices[0] if len(self.roi_vertices.shape) == 3 and self.roi_vertices.shape[0] == 1 else self.roi_vertices
         
-        mask = create_roi_mask(processed, self.roi_vertices)
+        mask = create_roi_mask(processed, vertices_to_use)
         masked = cv2.bitwise_and(processed, mask)
         
         return masked
@@ -192,10 +195,11 @@ class LaneDetector:
         image_center = width / 2
         
         # Calculate lane center from detected lines
-        lane_center = calculate_lane_center(lines, width) if lines is not None else None
+        lane_center = calculate_lane_center(lines, width, height) if lines is not None else None
         
         # Apply temporal smoothing if we have a previous lane center
         if lane_center is not None and self.last_lane_center is not None:
+            # New value gets 1-smoothing_factor weight, old value gets smoothing_factor weight
             lane_center = (self.smoothing_factor * self.last_lane_center + 
                           (1 - self.smoothing_factor) * lane_center)
         

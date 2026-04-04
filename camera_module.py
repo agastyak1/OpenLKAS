@@ -62,8 +62,11 @@ class CameraModule:
             if self.cap.isOpened():
                 logger.info(f"Webcam initialized successfully on index {camera_index}")
                 break
+            else:
+                self.cap.release()
+                self.cap = None
         
-        if not self.cap.isOpened():
+        if self.cap is None or not self.cap.isOpened():
             raise RuntimeError("No webcam found or accessible")
         
         # Set camera properties
@@ -180,7 +183,8 @@ def get_available_demo_videos(demo_dir: str = "demo_videos") -> list:
         List of video file paths
     """
     if not os.path.exists(demo_dir):
-        logger.warning(f"Demo directory not found: {demo_dir}")
+        logger.warning(f"Demo directory not found: {demo_dir}. Creating it now.")
+        os.makedirs(demo_dir)
         return []
     
     video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.wmv']

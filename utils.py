@@ -192,13 +192,14 @@ def resize_image(image: np.ndarray, width: int = None, height: int = None) -> np
     return cv2.resize(image, (width, height))
 
 
-def calculate_lane_center(lines: List[np.ndarray], image_width: int) -> Optional[float]:
+def calculate_lane_center(lines: List[np.ndarray], image_width: int, image_height: int = 720) -> Optional[float]:
     """
     Calculate the center of the detected lane from line segments.
     
     Args:
         lines: List of detected line segments
         image_width: Width of the image
+        image_height: Height of the image to find bottom intercept
         
     Returns:
         X-coordinate of lane center, or None if no lines detected
@@ -223,30 +224,35 @@ def calculate_lane_center(lines: List[np.ndarray], image_width: int) -> Optional
         else:  # Right lane (positive slope)
             right_lines.append(line)
     
-    # Calculate average positions for left and right lanes
-    left_center = None
-    right_center = None
+    # Calculate x intercepts at the bottom of the image for the left and right lanes
+    left_x_intercepts = []
+    right_x_intercepts = []
     
-    if left_lines:
-        left_x_coords = []
-        for line in left_lines:
-            x1, y1, x2, y2 = line[0]
-            left_x_coords.extend([x1, x2])
-        left_center = np.mean(left_x_coords)
+    bottom_y = image_height
     
-    if right_lines:
-        right_x_coords = []
-        for line in right_lines:
-            x1, y1, x2, y2 = line[0]
-            right_x_coords.extend([x1, x2])
-        right_center = np.mean(right_x_coords)
+    for line in left_lines:
+        x1, y1, x2, y2 = line[0]
+        slope = (y2 - y1) / (x2 - x1) if x2 != x1 else float('inf')
+        b = y1 - slope * x1
+        x_intercept = (bottom_y - b) / slope if slope != 0 and slope != float('inf') else x1
+        left_x_intercepts.append(x_intercept)
+
+    for line in right_lines:
+        x1, y1, x2, y2 = line[0]
+        slope = (y2 - y1) / (x2 - x1) if x2 != x1 else float('inf')
+        b = y1 - slope * x1
+        x_intercept = (bottom_y - b) / slope if slope != 0 and slope != float('inf') else x1
+        right_x_intercepts.append(x_intercept)
+
+    left_intercept = np.mean(left_x_intercepts) if left_x_intercepts else None
+    right_intercept = np.mean(right_x_intercepts) if right_x_intercepts else None
     
-    # Calculate lane center
-    if left_center is not None and right_center is not None:
-        return (left_center + right_center) / 2
-    elif left_center is not None:
-        return left_center + 100  # Estimate right lane
-    elif right_center is not None:
-        return right_center - 100  # Estimate left lane
-    
+    # Calculate lane center at bottom of image
+    if left_intercept is not None and right_intercept is not None:
+        return (left_intercept + right_intercept) / 2
+    elif left_intercept is not None:
+        return left_intercept + 200  # Estimate lane center from left lane
+    elif right_intercept is not None:
+        return right_intercept - 200  # Estimate lane center from right lane
+
     return None 
