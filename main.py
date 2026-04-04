@@ -119,6 +119,7 @@ class OpenLKAS:
         
         try:
             while self.running:
+                frame_start_time = time.time()
                 # Capture frame
                 ret, frame = self.camera.get_frame()
                 if not ret:
@@ -134,10 +135,16 @@ class OpenLKAS:
                     detection_result['offset']
                 )
                 
+                # Calculate processing time to adjust sleep duration
+                processing_time = time.time() - frame_start_time
+
                 # Update frame count and calculate FPS
                 self.frame_count += 1
-                elapsed_time = time.time() - self.start_time
-                current_fps = self.frame_count / elapsed_time if elapsed_time > 0 else 0
+                total_elapsed_time = time.time() - self.start_time
+                if total_elapsed_time > 0:
+                    current_fps = min(self.fps, self.frame_count / total_elapsed_time) if self.frame_count < 10 else self.frame_count / total_elapsed_time
+                else:
+                    current_fps = 0.0
                 
                 # Display results
                 if self.show_display and detection_result['processed_frame'] is not None:
@@ -178,7 +185,9 @@ class OpenLKAS:
                         logger.info(f"Volume updated to: {new_volume}")
                 
                 # Add small delay to control frame rate
-                time.sleep(1.0 / self.fps)
+                sleep_time = max(0.0, (1.0 / self.fps) - processing_time)
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
                 
         except KeyboardInterrupt:
             logger.info("Interrupted by user")

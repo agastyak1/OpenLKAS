@@ -54,7 +54,8 @@ class AudioAlert:
     def _initialize_audio(self):
         """Initialize pygame audio system."""
         try:
-            pygame.mixer.init(frequency=self.sample_rate, size=-16, channels=1, buffer=512)
+            # Init with stereo (channels=2) as some ALSA backends fail with mono
+            pygame.mixer.init(frequency=self.sample_rate, size=-16, channels=2, buffer=512)
             self.is_initialized = True
             logger.info(f"Audio system initialized - Frequency: {self.frequency}Hz, "
                        f"Duration: {self.duration}s, Volume: {self.volume}")
@@ -79,12 +80,15 @@ class AudioAlert:
         tone = tone * self.volume
         
         # Convert to 16-bit integer format
-        tone = (tone * 32767).astype(np.int16)
+        tone = np.clip(tone * 32767, -32768, 32767).astype(np.int16)
         
-        return tone
+        # Duplicate for stereo to match channels=2
+        stereo_tone = np.column_stack((tone, tone))
+
+        return stereo_tone
     
-    def _play_beep_threaded(self):
-        """Play beep sound in a separate thread to avoid blocking."""
+    def _play_beep_sync(self):
+        """Play beep sound synchronously."""
         try:
             # Generate beep sound
             beep_sound = self._generate_beep_sound()
@@ -125,7 +129,7 @@ class AudioAlert:
         self.last_alert_time = current_time
         
         # Play beep in separate thread
-        self.alert_thread = threading.Thread(target=self._play_beep_threaded)
+        self.alert_thread = threading.Thread(target=self._play_beep_sync)
         self.alert_thread.daemon = True
         self.alert_thread.start()
         
@@ -148,7 +152,7 @@ class AudioAlert:
         
         def continuous_beep():
             while time.time() - start_time < duration and not self.stop_alert:
-                self.play_beep(force=True)
+                self._play_beep_sync()
                 time.sleep(self.alert_cooldown)
         
         # Start continuous alert in separate thread
