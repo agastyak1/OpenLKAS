@@ -244,8 +244,8 @@ def calculate_lane_center(lines: List[np.ndarray], image_width: int, image_heigh
         x_intercept = (bottom_y - b) / slope if slope != 0 and slope != float('inf') else x1
         right_x_intercepts.append(x_intercept)
 
-    left_intercept = np.mean(left_x_intercepts) if left_x_intercepts else None
-    right_intercept = np.mean(right_x_intercepts) if right_x_intercepts else None
+    left_intercept = np.median(left_x_intercepts) if left_x_intercepts else None
+    right_intercept = np.median(right_x_intercepts) if right_x_intercepts else None
     
     # Calculate lane center at bottom of image
     if left_intercept is not None and right_intercept is not None:

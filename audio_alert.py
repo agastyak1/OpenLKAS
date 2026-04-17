@@ -48,6 +48,9 @@ class AudioAlert:
         self.alert_thread = None
         self.stop_alert = False
         
+        # Cached sound object
+        self.cached_sound = None
+
         # Initialize pygame mixer
         self._initialize_audio()
     
@@ -57,11 +60,22 @@ class AudioAlert:
             # Init with stereo (channels=2) as some ALSA backends fail with mono
             pygame.mixer.init(frequency=self.sample_rate, size=-16, channels=2, buffer=512)
             self.is_initialized = True
+            self._update_cached_sound()
             logger.info(f"Audio system initialized - Frequency: {self.frequency}Hz, "
                        f"Duration: {self.duration}s, Volume: {self.volume}")
         except Exception as e:
             logger.error(f"Failed to initialize audio system: {e}")
             self.is_initialized = False
+
+    def _update_cached_sound(self):
+        """Update the cached pygame Sound object."""
+        if not self.is_initialized:
+            return
+        try:
+            beep_sound = self._generate_beep_sound()
+            self.cached_sound = pygame.sndarray.make_sound(beep_sound)
+        except Exception as e:
+            logger.error(f"Failed to create cached sound: {e}")
     
     def _generate_beep_sound(self) -> np.ndarray:
         """
@@ -90,17 +104,15 @@ class AudioAlert:
     def _play_beep_sync(self):
         """Play beep sound synchronously."""
         try:
-            # Generate beep sound
-            beep_sound = self._generate_beep_sound()
-            
-            # Create pygame Sound object
-            sound = pygame.sndarray.make_sound(beep_sound)
-            
-            # Play the sound
-            sound.play()
-            
-            # Wait for sound to finish
-            pygame.time.wait(int(self.duration * 1000))
+            if self.cached_sound is None:
+                self._update_cached_sound()
+
+            if self.cached_sound is not None:
+                # Play the sound
+                self.cached_sound.play()
+
+                # Wait for sound to finish
+                pygame.time.wait(int(self.duration * 1000))
             
         except Exception as e:
             logger.error(f"Error playing beep sound: {e}")
@@ -177,6 +189,7 @@ class AudioAlert:
             new_volume: New volume level (0.0 to 1.0)
         """
         self.volume = max(0.0, min(1.0, new_volume))
+        self._update_cached_sound()
         logger.info(f"Updated volume to: {self.volume}")
     
     def update_frequency(self, new_frequency: int):
@@ -187,6 +200,7 @@ class AudioAlert:
             new_frequency: New frequency in Hz
         """
         self.frequency = max(100, min(2000, new_frequency))  # Clamp between 100 and 2000 Hz
+        self._update_cached_sound()
         logger.info(f"Updated frequency to: {self.frequency}Hz")
     
     def update_duration(self, new_duration: float):
@@ -197,6 +211,7 @@ class AudioAlert:
             new_duration: New duration in seconds
         """
         self.duration = max(0.1, min(2.0, new_duration))  # Clamp between 0.1 and 2.0 seconds
+        self._update_cached_sound()
         logger.info(f"Updated duration to: {self.duration}s")
     
     def get_audio_stats(self) -> dict:

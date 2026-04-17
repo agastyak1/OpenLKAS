@@ -53,6 +53,10 @@ class LaneDetector:
         self.departure_threshold = departure_threshold
         self.roi_vertices = roi_vertices
         
+        # Cache for ROI mask to optimize processing
+        self.cached_roi_mask = None
+        self.cached_frame_shape = None
+
         # State tracking
         self.last_lane_center = None
         self.smoothing_factor = 0.3  # For temporal smoothing (lower = more responsive to current frame)
@@ -83,14 +87,14 @@ class LaneDetector:
             # Step 1: Preprocess the frame
             processed = self._preprocess_frame(frame)
             
-            # Step 2: Apply region of interest mask
-            masked = self._apply_roi_mask(processed, frame.shape)
+            # Step 2: Detect edges
+            edges = self._detect_edges(processed)
             
-            # Step 3: Detect edges
-            edges = self._detect_edges(masked)
+            # Step 3: Apply region of interest mask
+            masked_edges = self._apply_roi_mask(edges, frame.shape)
             
             # Step 4: Detect lines using Hough transform
-            lines = self._detect_lines(edges)
+            lines = self._detect_lines(masked_edges)
             
             # Step 5: Calculate lane center and drift
             result = self._calculate_drift(frame, lines)
@@ -135,14 +139,24 @@ class LaneDetector:
         Returns:
             Masked frame
         """
-        if self.roi_vertices is None:
-            self.roi_vertices = get_default_roi_vertices(frame_shape[:2])
+        # Create and cache the mask if not already cached, or if frame shape changed
+        if self.cached_roi_mask is None or self.cached_frame_shape != frame_shape[:2]:
+            if self.roi_vertices is None:
+                self.roi_vertices = get_default_roi_vertices(frame_shape[:2])
 
-        # extract the actual 2D array if we are dealing with the nested array format
-        vertices_to_use = self.roi_vertices[0] if len(self.roi_vertices.shape) == 3 and self.roi_vertices.shape[0] == 1 else self.roi_vertices
-        
-        mask = create_roi_mask(processed, vertices_to_use)
-        masked = cv2.bitwise_and(processed, mask)
+            # extract the actual 2D array if we are dealing with the nested array format
+            vertices_to_use = self.roi_vertices[0] if len(self.roi_vertices.shape) == 3 and self.roi_vertices.shape[0] == 1 else self.roi_vertices
+
+            # Create a blank mask matching the shape of the processed frame (e.g. grayscale/edges)
+            # which is just 2D, rather than the 3D frame shape.
+            mask_shape = processed.shape[:2]
+            mask = np.zeros(mask_shape, dtype=np.uint8)
+            cv2.fillPoly(mask, [vertices_to_use], 255)
+
+            self.cached_roi_mask = mask
+            self.cached_frame_shape = frame_shape[:2]
+
+        masked = cv2.bitwise_and(processed, self.cached_roi_mask)
         
         return masked
     
