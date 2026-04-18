@@ -33,17 +33,21 @@ class OpenLKAS:
     
     def __init__(self, mode: str = 'live', video_path: str = None,
                  threshold: float = 50.0, show_display: bool = True,
-                 resolution: tuple = (1280, 720), fps: int = 30):
+                 resolution: tuple = (1280, 720), fps: int = 30,
+                 car_width: float = 70.0, lane_width: float = 144.0, camera_offset: float = 0.0):
         """
         Initialize OpenLKAS system.
         
         Args:
             mode: 'live' for webcam, 'demo' for video file
             video_path: Path to demo video (required for demo mode)
-            threshold: Lane departure threshold in pixels
+            threshold: Lane departure threshold in pixels (fallback)
             show_display: Whether to show video display
             resolution: Camera resolution
             fps: Target frame rate
+            car_width: Real-world width of car (inches)
+            lane_width: Real-world lane width (inches)
+            camera_offset: Offset of camera from true center of car (inches)
         """
         self.mode = mode
         self.video_path = video_path
@@ -51,6 +55,9 @@ class OpenLKAS:
         self.show_display = show_display
         self.resolution = resolution
         self.fps = fps
+        self.car_width = car_width
+        self.lane_width = lane_width
+        self.camera_offset = camera_offset
         
         # System components
         self.camera = None
@@ -86,7 +93,10 @@ class OpenLKAS:
             # Initialize lane detector
             logger.info("Initializing lane detector...")
             self.lane_detector = create_lane_detector(
-                departure_threshold=self.threshold
+                departure_threshold=self.threshold,
+                car_width=self.car_width,
+                lane_width=self.lane_width,
+                camera_offset=self.camera_offset
             )
             
             # Initialize audio alert system
@@ -173,17 +183,39 @@ class OpenLKAS:
                     cv2.imshow('OpenLKAS - Lane Keeping Assist System', display_frame)
                     
                     # Handle key presses
-                    key = cv2.waitKey(1) & 0xFF
-                    if key == ord('q'):
+                    key = cv2.waitKeyEx(1)
+                    char_key = key & 0xFF
+                    
+                    if char_key == ord('q'):
                         logger.info("Quit requested by user")
                         break
-                    elif key == ord('t'):
-                        # Toggle threshold
-                        new_threshold = self.threshold + 10 if self.threshold < 100 else 20
-                        self.lane_detector.update_threshold(new_threshold)
-                        self.threshold = new_threshold
-                        logger.info(f"Threshold updated to: {new_threshold}px")
-                    elif key == ord('v'):
+                    elif key in [63232, 2490368, 0] or char_key == ord('w'): # UP
+                        self.lane_detector.offset_roi(0, -20)
+                    elif key in [63233, 2621440, 1] or char_key == ord('s'): # DOWN
+                        self.lane_detector.offset_roi(0, 20)
+                    elif key in [63234, 2424832, 2] or char_key == ord('a'): # LEFT
+                        self.lane_detector.offset_roi(-20, 0)
+                    elif key in [63235, 2555904, 3] or char_key == ord('d'): # RIGHT
+                        self.lane_detector.offset_roi(20, 0)
+                    elif char_key == ord('i'):             # Top Edge UP
+                        self.lane_detector.adjust_top_edge(-10)
+                    elif char_key == ord('k'):             # Top Edge DOWN
+                        self.lane_detector.adjust_top_edge(10)
+                    elif char_key == ord('j'):             # Top Width SHRINK
+                        self.lane_detector.adjust_top_width(-10)
+                    elif char_key == ord('l'):             # Top Width EXPAND
+                        self.lane_detector.adjust_top_width(10)
+                    elif char_key == ord('t'):             # Bottom Edge UP
+                        self.lane_detector.adjust_bottom_edge(-10)
+                    elif char_key == ord('g'):             # Bottom Edge DOWN
+                        self.lane_detector.adjust_bottom_edge(10)
+                    elif char_key == ord('f'):             # Bottom Width SHRINK
+                        self.lane_detector.adjust_bottom_width(-10)
+                    elif char_key == ord('h'):             # Bottom Width EXPAND
+                        self.lane_detector.adjust_bottom_width(10)
+                    elif char_key == ord('c'):             # Auto Calibrate
+                        self.lane_detector.auto_calibrate_roi(frame)
+                    elif char_key == ord('v'):
                         # Toggle volume
                         current_volume = self.audio_alert.volume
                         new_volume = 0.0 if current_volume > 0.5 else 0.5
@@ -257,6 +289,12 @@ Examples:
                        help='Camera resolution in format WxH (default: 1280x720)')
     parser.add_argument('--fps', type=int, default=30,
                        help='Target frame rate (default: 30)')
+    parser.add_argument('--car-width', type=float, default=70.0,
+                       help='Width of the car in inches (default: 70.0)')
+    parser.add_argument('--lane-width', type=float, default=144.0,
+                       help='Standard lane width in inches (default: 144.0 for US Highway)')
+    parser.add_argument('--camera-offset', type=float, default=0.0,
+                       help='Camera offset from center in inches (positive=right, default: 0.0)')
     parser.add_argument('--list-videos', action='store_true',
                        help='List available demo videos and exit')
     
@@ -302,7 +340,10 @@ Examples:
             threshold=args.threshold,
             show_display=not args.no_display,
             resolution=resolution,
-            fps=args.fps
+            fps=args.fps,
+            car_width=args.car_width,
+            lane_width=args.lane_width,
+            camera_offset=args.camera_offset
         )
         system.run()
     except Exception as e:

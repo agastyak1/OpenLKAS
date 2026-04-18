@@ -1,1 +1,10 @@
 venv/
+
+# Environment / OS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Project Specific

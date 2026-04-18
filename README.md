@@ -29,6 +29,16 @@ python main.py --mode live
 python main.py --mode live --threshold 50 --show-display
 ```
 
+## 🎮 Controls & Customization
+While the display is active, you can use these keys to dynamically warp the lane detection bounds on the fly to perfectly map your dashboard and camera positioning:
+- **`W`/`A`/`S`/`D`** or **Arrows**: Shift entire Focus Area Up/Left/Down/Right
+- **`I`/`K`**: Move Top Edge (Horizon) Up/Down
+- **`J`/`L`**: Expand/Shrink Top Width
+- **`T`/`G`**: Move Bottom Edge Up/Down
+- **`F`/`H`**: Expand/Shrink Bottom Width
+- **`C`**: Auto-Calibrate Focus Area mathematically
+- **`V`**: Toggle audio volume
+
 ##  Config
 
 Key parameters can be adjusted in the respective modules:

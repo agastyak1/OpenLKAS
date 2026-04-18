@@ -29,9 +29,14 @@ python main.py --mode live
 ## 🎮 Controls
 
 When running with display enabled:
-- **Q**: Quit the application
-- **T**: Toggle threshold sensitivity
-- **V**: Toggle audio volume
+- **`Q`**: Quit the application
+- **`W`/`A`/`S`/`D`** or **Arrows**: Shift entire Focus Area Up/Left/Down/Right
+- **`I`/`K`**: Move Top Edge Up/Down
+- **`J`/`L`**: Expand/Shrink Top Width
+- **`T`/`G`**: Move Bottom Edge Up/Down
+- **`F`/`H`**: Expand/Shrink Bottom Width
+- **`C`**: Auto-Calibrate Focus Area
+- **`V`**: Toggle audio volume
 
 ## 📁 Adding Demo Videos
 

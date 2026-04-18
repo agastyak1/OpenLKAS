@@ -39,10 +39,10 @@ def get_default_roi_vertices(image_shape: Tuple[int, int]) -> np.ndarray:
     height, width = image_shape
     
     # Define ROI vertices - trapezoid shape focusing on road area
-    bottom_left = (width * 0.1, height)
+    bottom_left = (width * 0.1, height * 0.85)
     top_left = (width * 0.4, height * 0.6)
     top_right = (width * 0.6, height * 0.6)
-    bottom_right = (width * 0.9, height)
+    bottom_right = (width * 0.9, height * 0.85)
     
     vertices = np.array([[bottom_left, top_left, top_right, bottom_right]], dtype=np.int32)
     return vertices
@@ -249,10 +249,10 @@ def calculate_lane_center(lines: List[np.ndarray], image_width: int, image_heigh
     
     # Calculate lane center at bottom of image
     if left_intercept is not None and right_intercept is not None:
-        return (left_intercept + right_intercept) / 2
+        return (left_intercept + right_intercept) / 2, left_intercept, right_intercept
     elif left_intercept is not None:
-        return left_intercept + 200  # Estimate lane center from left lane
+        return left_intercept + 200, left_intercept, None  # Estimate lane center from left lane
     elif right_intercept is not None:
-        return right_intercept - 200  # Estimate lane center from right lane
+        return right_intercept - 200, None, right_intercept  # Estimate lane center from right lane
 
-    return None 
+    return None, None, None 
