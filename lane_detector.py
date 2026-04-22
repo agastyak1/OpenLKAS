@@ -1,5 +1,5 @@
 """
-Lane detection module for OpenLKAS (Open Lane Keeping Assist System)
+Lane detection module for OpenLCWS (Open Lane and Collision Warning System)
 Processes frames to detect lane lines and calculate vehicle drift from lane center.
 """
 

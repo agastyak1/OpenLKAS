@@ -1,5 +1,5 @@
 """
-Camera module for OpenLKAS (Open Lane Keeping Assist System)
+Camera module for OpenLCWS (Open Lane and Collision Warning System)
 Handles frame capture from live webcam or demo video files.
 """
 

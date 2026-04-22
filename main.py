@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Main control loop for OpenLKAS (Open Lane Keeping Assist System)
+Main control loop for OpenLCWS (Open Lane and Collision Warning System)
 Integrates camera, lane detection, and audio alert modules.
 """
 
@@ -27,9 +27,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class OpenLKAS:
+class OpenLCWS:
     """
-    Main OpenLKAS system that integrates all modules.
+    Main OpenLCWS system that integrates all modules.
     """
     
     def __init__(self, mode: str = 'live', video_path: str = None,
@@ -38,7 +38,7 @@ class OpenLKAS:
                  car_width: float = 70.0, lane_width: float = 144.0, camera_offset: float = 0.0,
                  enable_fcw: bool = False, fcw_confidence: float = 0.5):
         """
-        Initialize OpenLKAS system.
+        Initialize OpenLCWS system.
         
         Args:
             mode: 'live' for webcam, 'demo' for video file
@@ -89,7 +89,7 @@ class OpenLKAS:
     def _initialize_system(self):
         """Initialize all system components."""
         try:
-            logger.info("Initializing OpenLKAS system...")
+            logger.info("Initializing OpenLCWS system...")
             
             # Initialize camera module
             logger.info(f"Initializing camera in {self.mode} mode...")
@@ -136,7 +136,7 @@ class OpenLKAS:
                     self.enable_fcw = False
                     self.fcw_active = False
             
-            logger.info("OpenLKAS system initialized successfully")
+            logger.info("OpenLCWS system initialized successfully")
             
         except Exception as e:
             logger.error(f"Failed to initialize system: {e}")
@@ -152,7 +152,7 @@ class OpenLKAS:
         self.running = True
         self.start_time = time.time()
         
-        logger.info("Starting OpenLKAS main loop...")
+        logger.info("Starting OpenLCWS main loop...")
         logger.info(f"Mode: {self.mode}, Threshold: {self.threshold}px, Display: {self.show_display}")
         
         try:
@@ -233,7 +233,7 @@ class OpenLKAS:
                     display_frame = resize_image(display_frame, width=1280)
                     
                     # Show frame
-                    cv2.imshow('OpenLKAS - Lane Keeping Assist System', display_frame)
+                    cv2.imshow('OpenLCWS - Lane and Collision Warning System', display_frame)
                     
                     # Handle key presses
                     key = cv2.waitKeyEx(1)
@@ -330,7 +330,7 @@ def signal_handler(signum, frame):
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description='OpenLKAS - Open Lane Keeping Assist System',
+        description='OpenLCWS - Open Lane and Collision Warning System',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -403,7 +403,7 @@ Examples:
     
     # Create and run system
     try:
-        system = OpenLKAS(
+        system = OpenLCWS(
             mode=args.mode,
             video_path=args.video,
             threshold=args.threshold,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Model download utility for OpenLKAS Forward Collision Warning.
+Model download utility for OpenLCWS Forward Collision Warning.
 Downloads MobileNet-SSD v2 Caffe model files.
 """
 
@@ -77,7 +77,7 @@ def download_models(force: bool = False):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Download FCW model files for OpenLKAS")
+    parser = argparse.ArgumentParser(description="Download FCW model files for OpenLCWS")
     parser.add_argument("--force", action="store_true", help="Force re-download of all files")
     args = parser.parse_args()
     download_models(force=args.force)

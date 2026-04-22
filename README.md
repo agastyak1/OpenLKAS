@@ -1,7 +1,7 @@
-> ⚠️ **WARNING: This software is experimental and still buggy. Do NOT rely on OpenLKAS as a safety system. It is for educational and research purposes only. Always keep your eyes on the road and drive responsibly.**
+> ⚠️ **WARNING: This software is experimental and still buggy. Do NOT rely on OpenLCWS as a safety system. It is for educational and research purposes only. Always keep your eyes on the road and drive responsibly.**
 
-## OpenLKAS is currently IN PROGRESS and in bugfixing.
-- Ver 0.0: Initial upload of OpenLKAS
+## OpenLCWS is currently IN PROGRESS and in bugfixing.
+- Ver 0.0: Initial upload of OpenLCWS
 - Ver 0.1: Forward Collision Warning (FCW) system added — MobileNet-SSD vehicle detection with Time-to-Collision estimation
 - Future Ver 0.2: Revamp of code with optimizations towards RPI4/5, & Nvidia Jetson Nano
 
@@ -53,8 +53,8 @@ Key parameters can be adjusted in the respective modules:
 
 ## Hardware Requirements
 
-I have tested with a Raspberry Pi 4 with 4GB of RAM, and OpenLKAS runs smoothly. However, OpenLKAS can run on any device with the software dependency prerequisites - as long as said device has above 2GB of RAM, and a processor around the power of an ARM Cortex A72. However, results may vary. Also, a camera must be connected in order for live mode to run, preferably of a resolution of 720p and above.
-Furthermore, I have also tested with a MacBook (3.4 gHz i7) running macOS Ventura utilizing the "iPhone as Camera" feature - where I keep the laptop running OpenLKAS, and the phone is mounted to the dash pointing the rear camera towards the road. The higher the resolution camera and higher CPU processing power you have, the better.
+I have tested with a Raspberry Pi 4 with 4GB of RAM, and OpenLCWS runs smoothly. However, OpenLCWS can run on any device with the software dependency prerequisites - as long as said device has above 2GB of RAM, and a processor around the power of an ARM Cortex A72. However, results may vary. Also, a camera must be connected in order for live mode to run, preferably of a resolution of 720p and above.
+Furthermore, I have also tested with a MacBook (3.4 gHz i7) running macOS Ventura utilizing the "iPhone as Camera" feature - where I keep the laptop running OpenLCWS, and the phone is mounted to the dash pointing the rear camera towards the road. The higher the resolution camera and higher CPU processing power you have, the better.
 I may test with an Android device as well.
 
 
@@ -73,7 +73,7 @@ I may test with an Android device as well.
 2. Validate lane detection accuracy
 3. Switch to live mode for real-time testing
 4. Verify audio alerts trigger correctly
-5. Please act accordingly while testing - do NOT rely on OpenLKAS as a complete safety system. Only test on empty roads and be cautious while driving.
+5. Please act accordingly while testing - do NOT rely on OpenLCWS as a complete safety system. Only test on empty roads and be cautious while driving.
 
 
 ## Technical Details
@@ -87,7 +87,7 @@ The system uses:
 
 ## 🚨 Forward Collision Warning (FCW)
 
-OpenLKAS includes an optional Forward Collision Warning system that detects vehicles ahead and estimates Time-to-Collision (TTC).
+OpenLCWS includes an optional Forward Collision Warning system that detects vehicles ahead and estimates Time-to-Collision (TTC).
 
 ### Setup
 ```bash

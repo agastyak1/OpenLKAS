@@ -1,5 +1,5 @@
 """
-Audio alert module for OpenLKAS (Open Lane Keeping Assist System)
+Audio alert module for OpenLCWS (Open Lane and Collision Warning System)
 Handles audio alerts when lane departure is detected.
 """
 

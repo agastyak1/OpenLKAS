@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for OpenLKAS system
+Test script for OpenLCWS system
 Verifies that all modules can be imported and basic functionality works.
 """
 
@@ -171,7 +171,7 @@ def test_audio_alert():
 
 def main():
     """Run all tests."""
-    logger.info("Starting OpenLKAS system tests...")
+    logger.info("Starting OpenLCWS system tests...")
     
     tests = [
         ("Module Imports", test_imports),

@@ -1,5 +1,5 @@
 """
-Collision detection module for OpenLKAS (Open Lane Keeping Assist System)
+Collision detection module for OpenLCWS (Open Lane and Collision Warning System)
 Detects vehicles ahead using MobileNet-SSD and estimates Time-to-Collision (TTC).
 Runs inference on a background thread to avoid blocking the main lane detection loop.
 """

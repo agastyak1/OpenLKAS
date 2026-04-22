@@ -1,5 +1,5 @@
 """
-Utility functions for OpenLKAS (Open Lane Keeping Assist System)
+Utility functions for OpenLCWS (Open Lane and Collision Warning System)
 Helper functions for image processing, coordinate calculations, and common utilities.
 """
 

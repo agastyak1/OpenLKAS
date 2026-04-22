@@ -1,6 +1,6 @@
-# OpenLKAS Quick Start Guide
+# OpenLCWS Quick Start Guide
 
-Get your OpenLKAS (Open Lane Keeping Assist System) running in minutes!
+Get your OpenLCWS (Open Lane and Collision Warning System) running in minutes!
 
 ## 🚀 Quick Setup
 
