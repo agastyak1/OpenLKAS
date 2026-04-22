@@ -15,8 +15,9 @@ from typing import Optional
 # Import our modules
 from camera_module import create_camera_module, get_available_demo_videos
 from lane_detector import create_lane_detector
-from audio_alert import create_audio_alert, LaneDepartureAlert
-from utils import resize_image
+from audio_alert import create_audio_alert, LaneDepartureAlert, CollisionAlert
+from collision_detector import create_collision_detector
+from utils import resize_image, draw_detection_boxes, draw_collision_warning
 
 # Configure logging
 logging.basicConfig(
@@ -34,7 +35,8 @@ class OpenLKAS:
     def __init__(self, mode: str = 'live', video_path: str = None,
                  threshold: float = 50.0, show_display: bool = True,
                  resolution: tuple = (1280, 720), fps: int = 30,
-                 car_width: float = 70.0, lane_width: float = 144.0, camera_offset: float = 0.0):
+                 car_width: float = 70.0, lane_width: float = 144.0, camera_offset: float = 0.0,
+                 enable_fcw: bool = False, fcw_confidence: float = 0.5):
         """
         Initialize OpenLKAS system.
         
@@ -48,6 +50,8 @@ class OpenLKAS:
             car_width: Real-world width of car (inches)
             lane_width: Real-world lane width (inches)
             camera_offset: Offset of camera from true center of car (inches)
+            enable_fcw: Enable Forward Collision Warning
+            fcw_confidence: Minimum confidence for FCW detections
         """
         self.mode = mode
         self.video_path = video_path
@@ -58,12 +62,18 @@ class OpenLKAS:
         self.car_width = car_width
         self.lane_width = lane_width
         self.camera_offset = camera_offset
+        self.enable_fcw = enable_fcw
+        self.fcw_confidence = fcw_confidence
+        self.fcw_active = enable_fcw  # Runtime toggle state
         
         # System components
         self.camera = None
         self.lane_detector = None
         self.audio_alert = None
         self.departure_alert = None
+        self.collision_detector = None
+        self.async_detector = None
+        self.collision_alert = None
         
         # Control flags
         self.running = False
@@ -111,6 +121,21 @@ class OpenLKAS:
             # Initialize lane departure alert system
             self.departure_alert = LaneDepartureAlert(self.audio_alert)
             
+            # Initialize collision detection (FCW) if enabled
+            if self.enable_fcw:
+                logger.info("Initializing Forward Collision Warning...")
+                try:
+                    _, self.async_detector = create_collision_detector(
+                        confidence_threshold=self.fcw_confidence
+                    )
+                    self.collision_alert = CollisionAlert(self.audio_alert)
+                    self.async_detector.start()
+                    logger.info("FCW system initialized successfully")
+                except Exception as e:
+                    logger.warning(f"FCW initialization failed (continuing without it): {e}")
+                    self.enable_fcw = False
+                    self.fcw_active = False
+            
             logger.info("OpenLKAS system initialized successfully")
             
         except Exception as e:
@@ -148,6 +173,21 @@ class OpenLKAS:
                     detection_result['offset']
                 )
                 
+                # Process Forward Collision Warning (async — non-blocking)
+                fcw_tracked = []
+                fcw_threat = None
+                if self.fcw_active and self.async_detector:
+                    # Pass lane intercepts so FCW only alerts on vehicles in our lane
+                    self.async_detector.update_frame(
+                        frame,
+                        left_intercept=detection_result.get('left_intercept'),
+                        right_intercept=detection_result.get('right_intercept')
+                    )
+                    fcw_tracked, fcw_threat = self.async_detector.get_latest_results()
+                    if self.collision_alert:
+                        ttc = fcw_threat.ttc if fcw_threat else None
+                        self.collision_alert.process_collision(ttc)
+                
                 # Track frame time for moving average FPS
                 frame_end_time = time.time()
                 self.frame_times.append(frame_end_time)
@@ -175,6 +215,19 @@ class OpenLKAS:
                     mode_text = f"Mode: {self.mode.upper()}"
                     cv2.putText(display_frame, mode_text, (10, 60), 
                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                    
+                    # Draw FCW overlays
+                    if self.fcw_active and fcw_tracked:
+                        display_frame = draw_detection_boxes(display_frame, fcw_tracked)
+                        if fcw_threat and fcw_threat.ttc != float('inf'):
+                            display_frame = draw_collision_warning(display_frame, fcw_threat.ttc)
+                    
+                    # Draw FCW status indicator
+                    if self.enable_fcw:
+                        fcw_status = "FCW: ON" if self.fcw_active else "FCW: OFF"
+                        fcw_color = (0, 255, 0) if self.fcw_active else (0, 0, 255)
+                        cv2.putText(display_frame, fcw_status, (display_frame.shape[1] - 120, 30),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, fcw_color, 2)
                     
                     # Resize for display if needed
                     display_frame = resize_image(display_frame, width=1280)
@@ -215,6 +268,12 @@ class OpenLKAS:
                         self.lane_detector.adjust_bottom_width(10)
                     elif char_key == ord('c'):             # Auto Calibrate
                         self.lane_detector.auto_calibrate_roi(frame)
+                    elif char_key == ord('n'):             # Toggle FCW
+                        if self.enable_fcw:
+                            self.fcw_active = not self.fcw_active
+                            logger.info(f"FCW toggled: {'ON' if self.fcw_active else 'OFF'}")
+                        else:
+                            logger.info("FCW not available (start with --enable-fcw)")
                     elif char_key == ord('v'):
                         # Toggle volume
                         current_volume = self.audio_alert.volume
@@ -245,6 +304,12 @@ class OpenLKAS:
         # Clean up camera
         if self.camera:
             self.camera.release()
+        
+        # Clean up collision detector
+        if self.async_detector:
+            self.async_detector.stop()
+        if self.collision_alert:
+            self.collision_alert.cleanup()
         
         # Clean up audio
         if self.departure_alert:
@@ -295,6 +360,10 @@ Examples:
                        help='Standard lane width in inches (default: 144.0 for US Highway)')
     parser.add_argument('--camera-offset', type=float, default=0.0,
                        help='Camera offset from center in inches (positive=right, default: 0.0)')
+    parser.add_argument('--enable-fcw', action='store_true',
+                       help='Enable Forward Collision Warning system')
+    parser.add_argument('--fcw-confidence', type=float, default=0.5,
+                       help='FCW detection confidence threshold (default: 0.5)')
     parser.add_argument('--list-videos', action='store_true',
                        help='List available demo videos and exit')
     
@@ -343,7 +412,9 @@ Examples:
             fps=args.fps,
             car_width=args.car_width,
             lane_width=args.lane_width,
-            camera_offset=args.camera_offset
+            camera_offset=args.camera_offset,
+            enable_fcw=args.enable_fcw,
+            fcw_confidence=args.fcw_confidence
         )
         system.run()
     except Exception as e:

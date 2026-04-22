@@ -256,3 +256,103 @@ def calculate_lane_center(lines: List[np.ndarray], image_width: int, image_heigh
         return right_intercept - 200, None, right_intercept  # Estimate lane center from right lane
 
     return None, None, None 
+
+
+def draw_detection_boxes(image: np.ndarray, tracked_objects, 
+                         ttc_caution: float = 3.0, ttc_warning: float = 2.0,
+                         ttc_danger: float = 1.0) -> np.ndarray:
+    """
+    Draw bounding boxes around detected vehicles with TTC-based color coding.
+
+    Args:
+        image: Input image to draw on
+        tracked_objects: List of TrackedObject instances from collision_detector
+        ttc_caution: TTC threshold for caution tier (seconds)
+        ttc_warning: TTC threshold for warning tier (seconds)
+        ttc_danger: TTC threshold for danger tier (seconds)
+
+    Returns:
+        Image with detection boxes drawn
+    """
+    if not tracked_objects:
+        return image
+
+    for obj in tracked_objects:
+        x1, y1, x2, y2 = obj.bbox
+        ttc = obj.ttc
+
+        # Color code: green=safe, yellow=caution, orange=warning, red=danger
+        if ttc <= ttc_danger:
+            color = (0, 0, 255)       # Red
+            tier = "DANGER"
+        elif ttc <= ttc_warning:
+            color = (0, 128, 255)     # Orange
+            tier = "WARNING"
+        elif ttc <= ttc_caution:
+            color = (0, 255, 255)     # Yellow
+            tier = "CAUTION"
+        else:
+            color = (0, 255, 0)       # Green
+            tier = ""
+
+        # Draw bounding box
+        cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
+
+        # Label with class name + TTC
+        if ttc != float('inf') and ttc > 0:
+            label = f"{obj.label} {ttc:.1f}s"
+        else:
+            label = f"{obj.label}"
+
+        # Draw label background
+        font_scale = 0.5
+        thickness = 1
+        (text_w, text_h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 
+                                                font_scale, thickness)
+        cv2.rectangle(image, (x1, y1 - text_h - 8), (x1 + text_w + 4, y1), color, -1)
+        cv2.putText(image, label, (x1 + 2, y1 - 4), 
+                    cv2.FONT_HERSHEY_SIMPLEX, font_scale, (0, 0, 0), thickness)
+
+        # Draw tier badge if threatening
+        if tier:
+            cv2.putText(image, tier, (x1, y2 + 18),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+    return image
+
+
+def draw_collision_warning(image: np.ndarray, ttc: float, 
+                           ttc_danger: float = 1.0) -> np.ndarray:
+    """
+    Draw a large collision warning banner when TTC is critical.
+
+    Args:
+        image: Input image to draw on
+        ttc: Current time-to-collision (seconds)
+        ttc_danger: TTC threshold for danger banner
+
+    Returns:
+        Image with collision warning overlay
+    """
+    if ttc is None or ttc == float('inf') or ttc > ttc_danger or ttc <= 0:
+        return image
+
+    height, width = image.shape[:2]
+
+    # Semi-transparent red banner across the top
+    overlay = image.copy()
+    cv2.rectangle(overlay, (0, 0), (width, 80), (0, 0, 200), -1)
+
+    # Pulsing opacity based on time for visual urgency
+    import time
+    pulse = 0.4 + 0.3 * abs(np.sin(time.time() * 6))  # Oscillates 0.4-0.7
+    cv2.addWeighted(overlay, pulse, image, 1 - pulse, 0, image)
+
+    # Warning text
+    warning = f"!! COLLISION WARNING  TTC: {ttc:.1f}s !!"
+    text_size = cv2.getTextSize(warning, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 3)[0]
+    text_x = (width - text_size[0]) // 2
+    cv2.putText(image, warning, (text_x, 55),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 3)
+
+    return image

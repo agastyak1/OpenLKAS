@@ -36,7 +36,18 @@ When running with display enabled:
 - **`T`/`G`**: Move Bottom Edge Up/Down
 - **`F`/`H`**: Expand/Shrink Bottom Width
 - **`C`**: Auto-Calibrate Focus Area
+- **`N`**: Toggle Forward Collision Warning on/off
 - **`V`**: Toggle audio volume
+
+## 🚨 Forward Collision Warning (Quick Setup)
+
+```bash
+# 1. Download model files (one-time, ~23MB)
+python download_models.py
+
+# 2. Run with FCW enabled
+python main.py --mode demo --enable-fcw
+```
 
 ## 📁 Adding Demo Videos
 

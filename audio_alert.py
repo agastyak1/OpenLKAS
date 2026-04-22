@@ -321,4 +321,106 @@ class LaneDepartureAlert:
     
     def cleanup(self):
         """Clean up resources."""
-        self.audio_alert.cleanup() 
+        self.audio_alert.cleanup()
+
+
+class CollisionAlert:
+    """
+    Forward collision warning alert system with 3-tier TTC-based alerts.
+    Uses a higher-pitched 1200Hz tone to distinguish from lane departure (800Hz).
+    """
+
+    # TTC thresholds (seconds)
+    TTC_CAUTION = 3.0
+    TTC_WARNING = 2.0
+    TTC_DANGER = 1.0
+
+    def __init__(self, audio_alert: AudioAlert = None):
+        """
+        Initialize collision alert system.
+
+        Args:
+            audio_alert: Shared AudioAlert instance
+        """
+        self.base_audio = audio_alert if audio_alert else create_audio_alert()
+        self.current_tier = None  # None, 'CAUTION', 'WARNING', 'DANGER'
+        self.last_beep_time = 0
+        self.is_active = False
+
+        # Create a dedicated 1200Hz collision sound
+        self._collision_sound = None
+        self._init_collision_sound()
+
+    def _init_collision_sound(self):
+        """Generate the 1200Hz collision warning tone."""
+        if not self.base_audio.is_initialized:
+            return
+
+        try:
+            import pygame
+            sample_rate = self.base_audio.sample_rate
+            duration = 0.15  # Short, urgent beep
+            t = np.linspace(0, duration, int(sample_rate * duration), False)
+            tone = np.sin(2 * np.pi * 1200 * t)  # 1200Hz
+            tone = tone * self.base_audio.volume
+            tone = np.clip(tone * 32767, -32768, 32767).astype(np.int16)
+            stereo_tone = np.column_stack((tone, tone))
+            self._collision_sound = pygame.sndarray.make_sound(stereo_tone)
+            logger.info("Collision alert sound initialized (1200Hz)")
+        except Exception as e:
+            logger.error(f"Failed to create collision sound: {e}")
+
+    def _play_collision_beep(self):
+        """Play a single collision warning beep."""
+        if self._collision_sound is not None:
+            try:
+                self._collision_sound.play()
+            except Exception as e:
+                logger.error(f"Error playing collision beep: {e}")
+
+    def process_collision(self, ttc: float = None):
+        """
+        Process collision TTC and trigger appropriate alert tier.
+
+        Args:
+            ttc: Time-to-collision in seconds (None = no threat)
+        """
+        if ttc is None or ttc == float('inf') or ttc <= 0:
+            if self.current_tier is not None:
+                self.current_tier = None
+                self.is_active = False
+            return
+
+        current_time = time.time()
+
+        # Determine tier
+        if ttc <= self.TTC_DANGER:
+            new_tier = 'DANGER'
+            beep_interval = 0.1  # Rapid-fire
+        elif ttc <= self.TTC_WARNING:
+            new_tier = 'WARNING'
+            beep_interval = 0.3
+        elif ttc <= self.TTC_CAUTION:
+            new_tier = 'CAUTION'
+            beep_interval = 1.0
+        else:
+            if self.current_tier is not None:
+                self.current_tier = None
+                self.is_active = False
+            return
+
+        # Log tier changes
+        if new_tier != self.current_tier:
+            logger.info(f"Collision alert: {new_tier} (TTC: {ttc:.1f}s)")
+            self.current_tier = new_tier
+            self.is_active = True
+
+        # Play beep at the tier-appropriate interval
+        if current_time - self.last_beep_time >= beep_interval:
+            self._play_collision_beep()
+            self.last_beep_time = current_time
+
+    def cleanup(self):
+        """Clean up resources."""
+        self.current_tier = None
+        self.is_active = False

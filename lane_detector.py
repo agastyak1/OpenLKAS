@@ -257,7 +257,9 @@ class LaneDetector:
             'lane_center': lane_center,
             'image_center': image_center,
             'offset': offset,
-            'off_lane': off_lane
+            'off_lane': off_lane,
+            'left_intercept': left_intercept,
+            'right_intercept': right_intercept
         }
     
     def _add_visual_overlays(self, frame: np.ndarray, lines: Optional[np.ndarray], 

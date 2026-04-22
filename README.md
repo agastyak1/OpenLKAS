@@ -1,6 +1,9 @@
+> ⚠️ **WARNING: This software is experimental and still buggy. Do NOT rely on OpenLKAS as a safety system. It is for educational and research purposes only. Always keep your eyes on the road and drive responsibly.**
+
 ## OpenLKAS is currently IN PROGRESS and in bugfixing.
 - Ver 0.0: Initial upload of OpenLKAS
-- Future Ver 0.1: Revamp of code with optimizations towards RPI4/5, & Nvidia Jetson Nano; Shifting towards YOLO Models in this release rather than OpenCV
+- Ver 0.1: Forward Collision Warning (FCW) system added — MobileNet-SSD vehicle detection with Time-to-Collision estimation
+- Future Ver 0.2: Revamp of code with optimizations towards RPI4/5, & Nvidia Jetson Nano
 
 ##  Software Dependencies
 
@@ -37,6 +40,7 @@ While the display is active, you can use these keys to dynamically warp the lane
 - **`T`/`G`**: Move Bottom Edge Up/Down
 - **`F`/`H`**: Expand/Shrink Bottom Width
 - **`C`**: Auto-Calibrate Focus Area mathematically
+- **`N`**: Toggle Forward Collision Warning (FCW) on/off
 - **`V`**: Toggle audio volume
 
 ##  Config
@@ -80,6 +84,35 @@ The system uses:
 - **Region of Interest** masking for road area focus
 - **Center calculation** for drift detection
 - **Pygame** for audio alerts
+
+## 🚨 Forward Collision Warning (FCW)
+
+OpenLKAS includes an optional Forward Collision Warning system that detects vehicles ahead and estimates Time-to-Collision (TTC).
+
+### Setup
+```bash
+# Download the MobileNet-SSD model files (~23MB)
+python download_models.py
+```
+
+### Usage
+```bash
+# Enable FCW alongside lane detection
+python main.py --mode demo --enable-fcw
+
+# With custom confidence threshold
+python main.py --mode live --enable-fcw --fcw-confidence 0.6
+```
+
+### How It Works
+- Uses **MobileNet-SSD v2** via OpenCV DNN for vehicle detection
+- Runs on a **background thread** — does not slow down lane detection
+- Calculates **Time-to-Collision (TTC)** using bounding box expansion rate
+- Three alert tiers with a distinct **1200Hz tone** (vs 800Hz for lane departure):
+  - 🟡 **CAUTION** (TTC ≤ 3.0s): Single beep every 1.0s
+  - 🟠 **WARNING** (TTC ≤ 2.0s): Rapid beeping every 0.3s
+  - 🔴 **DANGER** (TTC ≤ 1.0s): Continuous alarm + visual banner
+- Press **`N`** at runtime to toggle FCW on/off
 
 ## License - MIT License
 
